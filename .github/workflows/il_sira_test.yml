@@ -5,10 +5,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: il-sira-takip
+  cancel-in-progress: false
 
 jobs:
-  test:
+  kontrol:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,9 +27,19 @@ jobs:
       - name: Kutuphaneleri yukle
         run: pip install requests beautifulsoup4
 
-      - name: Il siralarini test et
+      - name: Il siralarini kontrol et
         run: python il_sira_takip.py
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Siralari GitHub'a kaydet
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add il_siralari.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Il siralari guncellendi"
+            git push
+          fi
           
